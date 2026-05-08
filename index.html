@@ -1,0 +1,1232 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <link rel="shortcut icon" href="icon.png" type="image/x-icon">
+  <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=5" />
+  <title>Caminando la Palabra</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Sora:wght@400;600;700;800&display=swap" rel="stylesheet">
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+  <style>
+    :root {
+      --blue:    #1a56db;
+      --blue-dk: #1341b0;
+      --blue-lt: #e8f0fe;
+      --teal:    #0891b2;
+      --green:   #059669;
+      --green-lt:#d1fae5;
+      --amber:   #d97706;
+      --amber-lt:#fef3c7;
+      --red:     #dc2626;
+      --red-lt:  #fee2e2;
+      --ink:     #0f172a;
+      --ink2:    #334155;
+      --muted:   #64748b;
+      --border:  #e2e8f0;
+      --bg:      #f0f4ff;
+      --white:   #ffffff;
+      --radius:  18px;
+      --radius-sm: 12px;
+      --shadow-card: 0 4px 24px rgba(26,86,219,0.13), 0 1px 4px rgba(0,0,0,0.06);
+      --shadow-hover: 0 12px 40px rgba(26,86,219,0.2), 0 2px 8px rgba(0,0,0,0.08);
+      --shadow-nav: 0 2px 20px rgba(15,23,42,0.1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: clamp(14px, 1.2vw, 16px);
+    }
+
+    /* ════════════════════════════════════════
+       PERFIL - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    #perfil-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      min-height: 100dvh;
+      padding: clamp(16px, 4vw, 40px);
+      background: linear-gradient(135deg, #0f172a 0%, #1a56db 60%, #0891b2 100%);
+      position: relative;
+      overflow: hidden;
+    }
+    #perfil-container::before {
+      content: '';
+      position: absolute;
+      width: min(500px, 80vw); height: min(500px, 80vw);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(8,145,178,0.4) 0%, transparent 70%);
+      top: -150px; right: -150px;
+      pointer-events: none;
+    }
+    #perfil-container::after {
+      content: '';
+      position: absolute;
+      width: min(400px, 70vw); height: min(400px, 70vw);
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(5,150,105,0.35) 0%, transparent 70%);
+      bottom: -100px; left: -100px;
+      pointer-events: none;
+    }
+    .perfil-inner {
+      position: relative; z-index: 1;
+      text-align: center;
+      animation: fadeUp .7s ease;
+      max-width: 520px; width: 100%;
+    }
+    .perfil-logo-ring {
+      width: clamp(60px, 15vw, 80px); height: clamp(60px, 15vw, 80px);
+      border-radius: 50%;
+      background: rgba(255,255,255,0.12);
+      border: 2px solid rgba(255,255,255,0.25);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto clamp(16px, 4vw, 24px);
+      backdrop-filter: blur(8px);
+    }
+    .perfil-logo-ring img { width: 42px; height: 42px; object-fit: contain; }
+    .perfil-title {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1.8rem, 6vw, 3rem);
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -1px;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+    .perfil-subtitle {
+      color: rgba(255,255,255,0.55);
+      font-size: clamp(13px, 3vw, 15px);
+      margin-bottom: clamp(28px, 6vw, 44px);
+      padding: 0 10px;
+    }
+    .perfil-cards {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+      gap: clamp(12px, 3vw, 16px);
+    }
+    .p-card {
+      background: rgba(255,255,255,0.1);
+      backdrop-filter: blur(16px);
+      border: 1.5px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      padding: clamp(20px, 5vw, 28px) clamp(14px, 3vw, 20px);
+      cursor: pointer;
+      transition: transform .22s ease, background .22s, box-shadow .22s;
+      color: #fff;
+      text-align: center;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .p-card:hover, .p-card:active {
+      background: rgba(255,255,255,0.18);
+      transform: translateY(-6px);
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+    .p-card-icon { font-size: clamp(32px, 8vw, 38px); margin-bottom: 14px; display: block; }
+    .p-card-name { font-weight: 700; font-size: clamp(14px, 4vw, 16px); letter-spacing: -0.2px; }
+    .p-card-desc { font-size: clamp(12px, 3vw, 13px); opacity: 0.6; margin-top: 5px; }
+
+    /* ════════════════════════════════════════
+       NAV - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    nav {
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      box-shadow: var(--shadow-nav);
+      position: sticky; top: 0; z-index: 200;
+      min-height: 60px;
+      display: flex; align-items: center;
+      padding: 8px clamp(8px, 2vw, 16px);
+      gap: clamp(6px, 1.5vw, 10px);
+      flex-wrap: wrap;
+    }
+    .nav-brand {
+      display: flex; align-items: center; gap: 9px;
+      flex-shrink: 0;
+    }
+    .nav-brand-icon {
+      width: 34px; height: 34px;
+      background: var(--white);
+      border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+      overflow: hidden;
+    }
+    .nav-brand-icon img { width: 20px; height: 20px; object-fit: contain; }
+    .nav-brand-text {
+      font-family: 'Sora', sans-serif;
+      font-weight: 700; font-size: 13px;
+      color: var(--ink); letter-spacing: -0.3px;
+      white-space: nowrap;
+    }
+    .nav-tabs {
+      display: flex; gap: 3px;
+      overflow-x: auto; flex: 1;
+      scrollbar-width: none; -ms-overflow-style: none;
+      -webkit-overflow-scrolling: touch;
+    }
+    .nav-tabs::-webkit-scrollbar { display: none; }
+    .nav-tab {
+      background: none; border: none;
+      padding: 7px 13px;
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(12px, 3vw, 13px); font-weight: 600;
+      color: var(--muted);
+      cursor: pointer; white-space: nowrap;
+      transition: all .18s; flex-shrink: 0;
+      touch-action: manipulation;
+      min-height: 36px;
+    }
+    .nav-tab:hover { background: var(--bg); color: var(--ink); }
+    .nav-tab.active { background: var(--blue); color: #fff; }
+    .nav-perfil-btn {
+      background: var(--blue-lt); color: var(--blue);
+      border: none; padding: 7px 13px;
+      border-radius: 8px;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 12px; font-weight: 700;
+      cursor: pointer; white-space: nowrap;
+      transition: background .18s; flex-shrink: 0;
+      touch-action: manipulation;
+      min-height: 36px;
+    }
+    .nav-perfil-btn:hover { background: #d0e2fd; }
+
+    /* ════════════════════════════════════════
+       LAYOUT - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .page-container {
+      flex: 1; 
+      padding: clamp(16px, 3vw, 28px) clamp(12px, 2vw, 20px) clamp(32px, 5vw, 48px);
+      max-width: 1100px; margin: 0 auto; width: 100%;
+    }
+
+    .section { display: none; animation: fadeUp .3s ease; }
+    .section.active { display: block; }
+
+    .page-header { margin-bottom: clamp(16px, 3vw, 20px); }
+    .page-header h2 {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1.2rem, 4vw, 1.85rem);
+      font-weight: 800; color: var(--ink); letter-spacing: -0.5px;
+    }
+    .page-header p { color: var(--muted); font-size: clamp(13px, 3vw, 14px); margin-top: 4px; }
+
+    /* ════════════════════════════════════════
+       CARD - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      padding: clamp(16px, 3vw, 26px);
+      box-shadow: var(--shadow-card);
+      border: 1px solid rgba(26,86,219,0.08);
+      margin-bottom: 20px;
+      transition: box-shadow .25s;
+      overflow: hidden;
+    }
+    .card:hover { box-shadow: var(--shadow-hover); }
+
+    /* ════════════════════════════════════════
+       FORMS - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 700;
+      color: var(--muted); text-transform: uppercase;
+      letter-spacing: 0.8px; margin-bottom: 7px;
+    }
+    .field input, .field select {
+      width: 100%; padding: 12px 14px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(14px, 3vw, 15px); color: var(--ink);
+      background: #f8faff;
+      transition: border-color .18s, box-shadow .18s, background .18s;
+      outline: none;
+      min-height: 44px;
+    }
+    .field input:focus, .field select:focus {
+      border-color: var(--blue); background: var(--white);
+      box-shadow: 0 0 0 4px rgba(26,86,219,0.1);
+    }
+    .row {
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+      gap: clamp(12px, 2vw, 16px);
+    }
+
+    .search-field { position: relative; margin-bottom: 16px; }
+    .search-field svg {
+      position: absolute; left: 13px; top: 50%;
+      transform: translateY(-50%); color: var(--muted); pointer-events: none;
+    }
+    .search-field input {
+      width: 100%; padding: 11px 14px 11px 40px;
+      border-radius: var(--radius-sm);
+      border: 1.5px solid var(--border);
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(13px, 3vw, 14px); color: var(--ink);
+      background: #f8faff; outline: none;
+      transition: border-color .18s, box-shadow .18s;
+      min-height: 44px;
+    }
+    .search-field input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 4px rgba(26,86,219,0.1);
+      background: var(--white);
+    }
+
+    /* ════════════════════════════════════════
+       BOTONES - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .btn {
+      display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+      padding: 11px 20px;
+      border-radius: var(--radius-sm); border: none;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: clamp(13px, 3vw, 14px); font-weight: 700;
+      cursor: pointer; transition: all .2s; white-space: nowrap;
+      touch-action: manipulation;
+      min-height: 44px;
+      min-width: 44px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dk) 100%);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(26,86,219,0.35);
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 22px rgba(26,86,219,0.45); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-danger {
+      background: var(--red-lt); color: var(--red);
+      border: 1.5px solid rgba(220,38,38,0.2);
+    }
+    .btn-danger:hover { background: #fecaca; }
+    .btn-ghost {
+      background: var(--bg); color: var(--ink2);
+      border: 1.5px solid var(--border);
+    }
+    .btn-ghost:hover { background: var(--border); }
+    .btn-sm { padding: 7px 13px; font-size: clamp(12px, 3vw, 13px); border-radius: 9px; }
+
+    .actions {
+      display: flex; flex-wrap: wrap;
+      gap: 10px; justify-content: flex-end;
+      align-items: center; margin-top: 20px;
+    }
+    .msg-ok {
+      flex: 1; min-width: 0;
+      color: var(--green); font-weight: 700; font-size: clamp(13px, 3vw, 14px);
+    }
+
+    /* ════════════════════════════════════════
+       TABLA - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .table-wrap {
+      overflow-x: auto; border-radius: 14px;
+      border: 1.5px solid var(--border);
+      -webkit-overflow-scrolling: touch;
+      margin: 0 -clamp(14px, 3vw, 26px);
+      width: calc(100% + clamp(28px, 6vw, 52px));
+    }
+    @media (min-width: 600px) {
+      .table-wrap {
+        margin: 0;
+        width: 100%;
+      }
+    }
+    table { width: 100%; border-collapse: collapse; min-width: 380px; }
+    thead { background: linear-gradient(135deg, var(--blue) 0%, var(--blue-dk) 100%); }
+    th {
+      padding: 13px 16px; font-size: 11px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 0.8px;
+      color: rgba(255,255,255,0.9); text-align: left; white-space: nowrap;
+    }
+    td {
+      padding: 12px 16px; border-bottom: 1px solid var(--border);
+      font-size: clamp(13px, 3vw, 14px); color: var(--ink); vertical-align: middle;
+    }
+    tr:last-child td { border-bottom: none; }
+    tbody tr { transition: background .12s; }
+    tbody tr:hover td { background: var(--blue-lt); }
+
+    input[type="checkbox"] {
+      width: 22px; height: 22px;
+      accent-color: var(--blue); cursor: pointer;
+      min-width: 22px; min-height: 22px;
+    }
+
+    /* ════════════════════════════════════════
+       ASISTENCIA - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .asist-header {
+      display: grid; 
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+      gap: clamp(12px, 2vw, 16px); margin-bottom: 16px;
+    }
+
+    /* ════════════════════════════════════════
+       INFO BAR
+    ════════════════════════════════════════ */
+    .info-bar {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: linear-gradient(135deg, var(--blue-lt), #dbeafe);
+      color: var(--blue);
+      border: 1.5px solid rgba(26,86,219,0.18);
+      padding: 10px 18px; border-radius: var(--radius-sm);
+      font-weight: 700; font-size: clamp(13px, 3vw, 14px); margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+
+    /* ════════════════════════════════════════
+       BADGES
+    ════════════════════════════════════════ */
+    .badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 5px 11px; border-radius: 999px;
+      font-size: clamp(11px, 2.5vw, 12px); font-weight: 700; white-space: nowrap;
+    }
+    .badge-green { background: var(--green-lt);  color: var(--green); }
+    .badge-amber { background: var(--amber-lt);  color: var(--amber); }
+    .badge-red   { background: var(--red-lt);    color: var(--red); }
+
+    /* ════════════════════════════════════════
+       MODAL - FULL RESPONSIVE
+    ════════════════════════════════════════ */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(15,23,42,0.55);
+      backdrop-filter: blur(6px);
+      display: none; align-items: flex-end; justify-content: center;
+      z-index: 500;
+      padding: 0;
+    }
+    .modal-overlay.show { display: flex; animation: fadeIn .2s ease; }
+    .modal-box {
+      background: var(--white);
+      border-radius: 24px 24px 0 0;
+      padding: 10px clamp(16px, 4vw, 28px) clamp(24px, 5vw, 32px);
+      width: 100%; max-width: 640px;
+      box-shadow: 0 -8px 50px rgba(15,23,42,0.2);
+      animation: slideUp .28s ease;
+      max-height: 90vh;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+    @media (min-width: 640px) {
+      .modal-overlay {
+        align-items: center;
+        padding: 20px;
+      }
+      .modal-box {
+        border-radius: var(--radius);
+        max-height: 85vh;
+      }
+    }
+    .modal-pill {
+      width: 44px; height: 5px;
+      background: var(--border); border-radius: 99px;
+      margin: 12px auto 22px;
+    }
+    .modal-title {
+      font-family: 'Sora', sans-serif;
+      font-size: clamp(1rem, 3vw, 1.15rem); font-weight: 700; color: var(--ink); margin-bottom: 20px;
+    }
+
+    /* ════════════════════════════════════════
+       EMPTY STATE
+    ════════════════════════════════════════ */
+    .empty {
+      text-align: center; padding: clamp(32px, 8vw, 44px) 20px; color: var(--muted);
+    }
+    .empty span { font-size: clamp(32px, 8vw, 38px); display: block; margin-bottom: 12px; }
+    .empty p { font-size: clamp(14px, 3vw, 15px); }
+
+    /* ════════════════════════════════════════
+       FOOTER
+    ════════════════════════════════════════ */
+    footer {
+      background: var(--ink);
+      color: rgba(255,255,255,0.4);
+      text-align: center; padding: 22px clamp(12px, 3vw, 16px);
+      font-size: clamp(11px, 2.5vw, 12px); line-height: 2;
+    }
+    footer a { color: rgba(255,255,255,0.6); text-decoration: underline; }
+
+    /* ════════════════════════════════════════
+       UTILIDADES RESPONSIVE
+    ════════════════════════════════════════ */
+    .hide-sm { display: none; }
+    @media (min-width: 640px) { .hide-sm { display: table-cell; } }
+    @media (min-width: 640px) { .hide-sm-inline { display: inline; } }
+
+    .show-sm { display: block; }
+    @media (min-width: 640px) { .show-sm { display: none; } }
+
+    /* Touch-friendly table scrolling indicator */
+    .table-scroll-hint {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 8px;
+      padding: 4px 0;
+    }
+    @media (min-width: 640px) {
+      .table-scroll-hint { display: none; }
+    }
+
+    /* Edad calculada - estilo especial */
+    .edad-calculada {
+      background: linear-gradient(135deg, var(--green-lt), #d1fae5);
+      color: var(--green);
+      border: 1.5px solid rgba(5,150,105,0.2);
+    }
+    .edad-calculada:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 4px rgba(5,150,105,0.1);
+    }
+    .edad-manual {
+      background: #f8faff;
+    }
+
+    /* ════════════════════════════════════════
+       ANIMACIONES
+    ════════════════════════════════════════ */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; } to { opacity: 1; }
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(40px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ════════════════════════════════════════
+       MEJORAS DE ACCESIBILIDAD
+    ════════════════════════════════════════ */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+<base target="_blank">
+</head>
+<body>
+
+<!-- ════════════════════════════════════════
+     PANTALLA PERFIL
+════════════════════════════════════════ -->
+<div id="perfil-container">
+  <div class="perfil-inner">
+    <div class="perfil-logo-ring">
+      <img src="icon.png" alt="Logo" onerror="this.style.display='none'">
+    </div>
+    <div class="perfil-title">Caminando<br>la Palabra</div>
+    <div class="perfil-subtitle">Selecciona tu perfil para ingresar</div>
+    <div class="perfil-cards">
+      <div class="p-card" onclick="entrarPerfil('Educación')">
+        <span class="p-card-icon">📚</span>
+        <div class="p-card-name">Educación</div>
+        <div class="p-card-desc">Gestión académica</div>
+      </div>
+      <div class="p-card" onclick="entrarPerfil('Emprendimiento')">
+        <span class="p-card-icon">💡</span>
+        <div class="p-card-name">Emprendimiento</div>
+        <div class="p-card-desc">Gestión de proyectos</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════
+     APP
+════════════════════════════════════════ -->
+<div id="app" style="display:none">
+
+  <nav>
+    <div class="nav-brand">
+      <div class="nav-brand-icon">
+        <img src="icon.png" alt="Logo" onerror="this.style.display='none'">
+      </div>
+      <span class="nav-brand-text hide-sm">CAMINANDO LA PALABRA</span>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab" id="btn-registro"    onclick="showSection('registro')">Registro</button>
+      <button class="nav-tab" id="btn-estudiantes" onclick="showSection('estudiantes')">Estudiantes</button>
+      <button class="nav-tab" id="btn-asistencia"  onclick="showSection('asistencia')">Asistencia</button>
+      <button class="nav-tab" id="btn-resumen"     onclick="showSection('resumen')">Resumen</button>
+    </div>
+    <button class="nav-perfil-btn" id="perfil-link" onclick="volverSeleccion()"></button>
+  </nav>
+
+  <div class="page-container">
+
+    <!-- ════════════════════════════════════════
+         REGISTRO - CON FECHA DE NACIMIENTO
+    ════════════════════════════════════════ -->
+    <div id="registro" class="section">
+      <div class="page-header">
+        <h2>Registrar estudiante</h2>
+        <p>Añade un nuevo estudiante al sistema</p>
+      </div>
+      <div class="card">
+        <div class="row">
+          <div class="field"><label>Nombres</label><input id="nombres" placeholder="Nombres del estudiante" /></div>
+          <div class="field"><label>Apellidos</label><input id="apellidos" placeholder="Apellidos del estudiante" /></div>
+        </div>
+        <div class="row">
+          <div class="field">
+            <label>Fecha de nacimiento</label>
+            <input id="fechaNacimiento" type="date" onchange="calcularEdadRegistro()" />
+          </div>
+          <div class="field">
+            <label>Edad <span style="font-weight:400;text-transform:none;font-size:11px">(se calcula automáticamente)</span></label>
+            <input id="edad" type="number" placeholder="Ej: 14" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Acudiente</label><input id="acudiente" placeholder="Nombre completo" /></div>
+          <div class="field">
+            <label>Teléfono <span style="font-weight:400;text-transform:none;font-size:11px">(opcional)</span></label>
+            <input id="telefono" placeholder="Teléfono de contacto" />
+          </div>
+        </div>
+        <div class="row">
+          <div class="field"><label>Fecha de inicio</label><input id="fechaInicio" type="date" /></div>
+        </div>
+        <div class="actions">
+          <span class="msg-ok" id="msgRegistro"></span>
+          <button class="btn btn-ghost" onclick="limpiarRegistro()">Limpiar</button>
+          <button class="btn btn-primary" onclick="registrarEstudiante()">✚ Registrar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         ESTUDIANTES
+    ════════════════════════════════════════ -->
+    <div id="estudiantes" class="section">
+      <div class="page-header">
+        <h2>Estudiantes</h2>
+        <p>Lista completa de estudiantes registrados</p>
+      </div>
+      <div class="card">
+        <div class="search-field">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="buscarEstudiantes" placeholder="Buscar por nombre o apellido..." oninput="renderEstudiantes()" />
+        </div>
+        <div class="table-scroll-hint">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Desliza horizontalmente para ver más
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Apellidos</th>
+                <th>Nombres</th>
+                <th class="hide-sm">Edad</th>
+                <th class="hide-sm">Tiempo</th>
+                <th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="tablaEstudiantes"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         ASISTENCIA
+    ════════════════════════════════════════ -->
+    <div id="asistencia" class="section">
+      <div class="page-header">
+        <h2>Registro de asistencia</h2>
+        <p>Marca la asistencia por fecha</p>
+      </div>
+      <div class="card">
+        <div class="asist-header">
+          <div class="field"><label>Fecha</label><input id="fechaAsistencia" type="date" onchange="loadAttendanceForDate()" /></div>
+          <div class="field">
+            <label>Buscar estudiante</label>
+            <div class="search-field" style="margin-bottom:0">
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+              <input id="buscarAsistencia" placeholder="Filtrar lista..." oninput="renderAsistenciaTable()" />
+            </div>
+          </div>
+        </div>
+        <div class="table-scroll-hint">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Desliza horizontalmente para ver más
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Apellidos</th>
+                <th>Nombres</th>
+                <th class="hide-sm">Edad</th>
+                <th style="text-align:center">✔ Asistencia</th>
+              </tr>
+            </thead>
+            <tbody id="tablaAsistencia"></tbody>
+          </table>
+        </div>
+        <div class="actions">
+          <button class="btn btn-ghost" onclick="clearAttendanceDate()">Limpiar fecha</button>
+          <button class="btn btn-primary" onclick="guardarAsistencia()">💾 Grabar asistencia</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ════════════════════════════════════════
+         RESUMEN
+    ════════════════════════════════════════ -->
+    <div id="resumen" class="section">
+      <div class="page-header">
+        <h2>Resumen de asistencias</h2>
+        <p>Vista general del rendimiento por estudiante</p>
+      </div>
+      <div class="card">
+        <div id="resumenInfo" class="info-bar">📅 Cargando...</div>
+        <div class="search-field">
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+          <input id="buscarResumen" placeholder="Buscar estudiante..." oninput="renderResumen()" />
+        </div>
+        <div class="table-scroll-hint">
+          <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+          Desliza horizontalmente para ver más
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Apellidos</th>
+                <th>Nombres</th>
+                <th class="hide-sm">Edad</th>
+                <th>Total</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody id="tablaResumen"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- ════════════════════════════════════════
+       MODAL EDITAR - CON FECHA DE NACIMIENTO
+  ════════════════════════════════════════ -->
+  <div id="modalEditar" class="modal-overlay">
+    <div class="modal-box">
+      <div class="modal-pill"></div>
+      <div class="modal-title">✏️ Editar estudiante</div>
+      <div class="row">
+        <div class="field"><label>Nombres</label><input id="editNombres" placeholder="Nombres" /></div>
+        <div class="field"><label>Apellidos</label><input id="editApellidos" placeholder="Apellidos" /></div>
+      </div>
+      <div class="row">
+        <div class="field">
+          <label>Fecha de nacimiento</label>
+          <input id="editFechaNacimiento" type="date" onchange="calcularEdadEdicion()" />
+        </div>
+        <div class="field">
+          <label>Edad <span style="font-weight:400;text-transform:none;font-size:11px">(se calcula automáticamente)</span></label>
+          <input id="editEdad" type="number" placeholder="Edad" />
+        </div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Acudiente</label><input id="editAcudiente" placeholder="Acudiente" /></div>
+        <div class="field"><label>Teléfono</label><input id="editTelefono" placeholder="Teléfono (opcional)" /></div>
+      </div>
+      <div class="row">
+        <div class="field"><label>Fecha de inicio</label><input id="editFechaInicio" type="date" /></div>
+      </div>
+      <div class="actions">
+        <button class="btn btn-ghost" onclick="cerrarModal()">Cancelar</button>
+        <button class="btn btn-danger" onclick="eliminarEstudianteActual()">🗑 Eliminar</button>
+        <button class="btn btn-primary" onclick="guardarEdicion()">Guardar cambios</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Colegio Rafael Pombo Neiva</p>
+    <p><a href="https://www.colegiorafaelpomboneiva.com/caminando-la-palabra" target="_blank">Proyecto Caminando la Palabra</a></p>
+    <p>© Jesús Forero 2025</p>
+  </footer>
+</div>
+
+<!-- ════════════════════════════════════════
+     FIREBASE + LÓGICA
+════════════════════════════════════════ -->
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyAgawhVDhT7saspifJE9gZFHEV-1sCAtio",
+    authDomain: "caminando-palabra.firebaseapp.com",
+    projectId: "caminando-palabra"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  let perfil = "";
+  let estudiantesCache = [];
+  let currentEditId = null;
+  let unsubscribeListener = null;
+  let attendanceForDate = [];
+  let checkboxState = {};
+
+  function escapeHtml(t) {
+    if (!t) return '';
+    return t.replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
+  }
+
+  function saveCheckboxState() {
+    document.querySelectorAll('#tablaAsistencia input[type=checkbox]').forEach(chk => {
+      checkboxState[chk.id.replace('asis-', '')] = chk.checked;
+    });
+  }
+
+  // ════════════════════════════════════════
+  //  CÁLCULO DE EDAD
+  // ════════════════════════════════════════
+  function calcularEdadDesdeFecha(fechaNacimiento) {
+    if (!fechaNacimiento) return null;
+    const hoy = new Date();
+    const nacimiento = new Date(fechaNacimiento);
+    let edad = hoy.getFullYear() - nacimiento.getFullYear();
+    const mes = hoy.getMonth() - nacimiento.getMonth();
+    if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+      edad--;
+    }
+    return edad >= 0 ? edad : null;
+  }
+
+  function calcularEdadRegistro() {
+    const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+    const edadInput = document.getElementById('edad');
+    if (fechaNacimiento) {
+      const edad = calcularEdadDesdeFecha(fechaNacimiento);
+      if (edad !== null) {
+        edadInput.value = edad;
+        edadInput.readOnly = true;
+        edadInput.classList.remove('edad-manual');
+        edadInput.classList.add('edad-calculada');
+      }
+    } else {
+      edadInput.readOnly = false;
+      edadInput.classList.remove('edad-calculada');
+      edadInput.classList.add('edad-manual');
+      // No limpiamos el valor para que puedan seguir escribiendo manualmente
+    }
+  }
+
+  function calcularEdadEdicion() {
+    const fechaNacimiento = document.getElementById('editFechaNacimiento').value;
+    const edadInput = document.getElementById('editEdad');
+    if (fechaNacimiento) {
+      const edad = calcularEdadDesdeFecha(fechaNacimiento);
+      if (edad !== null) {
+        edadInput.value = edad;
+        edadInput.readOnly = true;
+        edadInput.classList.remove('edad-manual');
+        edadInput.classList.add('edad-calculada');
+      }
+    } else {
+      edadInput.readOnly = false;
+      edadInput.classList.remove('edad-calculada');
+      edadInput.classList.add('edad-manual');
+      // No limpiamos el valor para que puedan seguir escribiendo manualmente
+    }
+  }
+
+  // ════════════════════════════════════════
+  //  PERFIL
+  // ════════════════════════════════════════
+  function entrarPerfil(tipo) {
+    perfil = tipo;
+    document.getElementById('perfil-container').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('perfil-link').innerText = tipo;
+    showSection('registro');
+    attachListenerForPerfil();
+  }
+
+  function volverSeleccion() {
+    if (unsubscribeListener) unsubscribeListener();
+    document.getElementById('perfil-container').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    perfil = "";
+  }
+
+  function showSection(id) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(b => b.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    const btn = document.getElementById('btn-' + id);
+    if (btn) btn.classList.add('active');
+    if (id === 'estudiantes') renderEstudiantes();
+    if (id === 'asistencia') renderAsistenciaTable();
+    if (id === 'resumen') renderResumen();
+  }
+
+  // ════════════════════════════════════════
+  //  LISTENER FIREBASE
+  // ════════════════════════════════════════
+  function attachListenerForPerfil() {
+    if (unsubscribeListener) unsubscribeListener();
+    unsubscribeListener = db.collection('estudiantes')
+      .onSnapshot(snap => {
+        estudiantesCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderEstudiantes();
+        renderAsistenciaTable();
+        renderResumen();
+      }, err => console.error("Firestore error:", err));
+  }
+
+  // ════════════════════════════════════════
+  //  REGISTRO
+  // ════════════════════════════════════════
+  async function registrarEstudiante() {
+    const nombres     = document.getElementById('nombres').value.trim();
+    const apellidos   = document.getElementById('apellidos').value.trim();
+    const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+    let edad = Number(document.getElementById('edad').value) || null;
+    const acudiente   = document.getElementById('acudiente').value.trim();
+    const telefono    = document.getElementById('telefono').value.trim();
+    const fechaInicio = document.getElementById('fechaInicio').value;
+
+    if (!nombres || !apellidos || !acudiente || !fechaInicio) {
+      document.getElementById('msgRegistro').innerText = "⚠️ Completa todos los campos requeridos";
+      return;
+    }
+
+    // Si hay fecha de nacimiento, calcular edad automáticamente
+    if (fechaNacimiento) {
+      edad = calcularEdadDesdeFecha(fechaNacimiento);
+    }
+
+    try {
+      await db.collection('estudiantes').add({ 
+        nombres, 
+        apellidos, 
+        fechaNacimiento: fechaNacimiento || null,
+        edad, 
+        acudiente, 
+        telefono, 
+        fechaInicio, 
+        perfil, 
+        asistencias: {} 
+      });
+      document.getElementById('msgRegistro').innerText = "✅ Registro exitoso";
+      limpiarRegistro();
+    } catch(e) { console.error(e); alert("Error al guardar. Revisa consola."); }
+  }
+
+  function limpiarRegistro() {
+    ['nombres','apellidos','fechaNacimiento','edad','acudiente','telefono','fechaInicio'].forEach(id => {
+      const el = document.getElementById(id); if (el) el.value = '';
+    });
+    const edadInput = document.getElementById('edad');
+    edadInput.readOnly = false;
+    edadInput.classList.remove('edad-calculada');
+    edadInput.classList.add('edad-manual');
+    setTimeout(() => document.getElementById('msgRegistro').innerText = '', 3000);
+  }
+
+  // ════════════════════════════════════════
+  //  RENDER ESTUDIANTES
+  // ════════════════════════════════════════
+  function renderEstudiantes() {
+    const q = (document.getElementById('buscarEstudiantes')?.value || '').toLowerCase();
+    const tbody = document.getElementById('tablaEstudiantes');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const filtered = estudiantesCache
+      .filter(e =>
+        !q || (e.nombres||'').toLowerCase().includes(q) || (e.apellidos||'').toLowerCase().includes(q)
+      )
+      .sort((a, b) => (a.apellidos || '').localeCompare(b.apellidos || '', 'es', {sensitivity: 'base'}));
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><span>🔍</span><p>Sin resultados</p></div></td></tr>`;
+      return;
+    }
+    filtered.forEach(e => {
+      // Calcular edad en tiempo real si hay fecha de nacimiento
+      let edadMostrada = e.edad;
+      if (e.fechaNacimiento) {
+        const edadCalculada = calcularEdadDesdeFecha(e.fechaNacimiento);
+        if (edadCalculada !== null) edadMostrada = edadCalculada;
+      }
+
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td><strong>${escapeHtml(e.apellidos)}</strong></td>
+          <td>${escapeHtml(e.nombres)}</td>
+          <td class="hide-sm">${edadMostrada||'—'}</td>
+          <td class="hide-sm" style="color:var(--muted);font-size:13px">${calcularTiempo(e.fechaInicio)}</td>
+          <td>
+            <button class="btn btn-ghost btn-sm" onclick="abrirEditar('${e.id}')">Editar</button>
+            <button class="btn btn-danger btn-sm" style="margin-left:6px" onclick="borrarEstudiante('${e.id}')">Eliminar</button>
+          </td>
+        </tr>`);
+    });
+  }
+
+  // ════════════════════════════════════════
+  //  MODAL EDITAR
+  // ════════════════════════════════════════
+  async function abrirEditar(id) {
+    currentEditId = id;
+    const doc = await db.collection('estudiantes').doc(id).get();
+    const e = doc.data();
+    document.getElementById('editNombres').value     = e.nombres    || '';
+    document.getElementById('editApellidos').value   = e.apellidos  || '';
+    document.getElementById('editFechaNacimiento').value = e.fechaNacimiento || '';
+
+    // Calcular edad actual si hay fecha de nacimiento
+    let edadActual = e.edad;
+    if (e.fechaNacimiento) {
+      const edadCalculada = calcularEdadDesdeFecha(e.fechaNacimiento);
+      if (edadCalculada !== null) edadActual = edadCalculada;
+    }
+
+    const edadInput = document.getElementById('editEdad');
+    edadInput.value = edadActual || '';
+
+    if (e.fechaNacimiento) {
+      edadInput.readOnly = true;
+      edadInput.classList.remove('edad-manual');
+      edadInput.classList.add('edad-calculada');
+    } else {
+      edadInput.readOnly = false;
+      edadInput.classList.remove('edad-calculada');
+      edadInput.classList.add('edad-manual');
+    }
+
+    document.getElementById('editAcudiente').value   = e.acudiente  || '';
+    document.getElementById('editTelefono').value    = e.telefono   || '';
+    document.getElementById('editFechaInicio').value = e.fechaInicio|| '';
+    document.getElementById('modalEditar').classList.add('show');
+  }
+
+  function cerrarModal() {
+    document.getElementById('modalEditar').classList.remove('show');
+    currentEditId = null;
+  }
+
+  async function guardarEdicion() {
+    if (!currentEditId) return;
+    const nombres     = document.getElementById('editNombres').value.trim();
+    const apellidos   = document.getElementById('editApellidos').value.trim();
+    const fechaNacimiento = document.getElementById('editFechaNacimiento').value;
+    let edad = Number(document.getElementById('editEdad').value) || null;
+    const acudiente   = document.getElementById('editAcudiente').value.trim();
+    const telefono    = document.getElementById('editTelefono').value.trim();
+    const fechaInicio = document.getElementById('editFechaInicio').value;
+
+    // Si hay fecha de nacimiento, recalcular edad
+    if (fechaNacimiento) {
+      edad = calcularEdadDesdeFecha(fechaNacimiento);
+    }
+
+    try {
+      await db.collection('estudiantes').doc(currentEditId).update({ 
+        nombres, 
+        apellidos, 
+        fechaNacimiento: fechaNacimiento || null,
+        edad, 
+        acudiente, 
+        telefono, 
+        fechaInicio 
+      });
+      cerrarModal();
+    } catch(e) { console.error(e); alert("Error actualizando."); }
+  }
+
+  async function borrarEstudiante(id) {
+    if (!confirm("¿Eliminar estudiante?")) return;
+    try { await db.collection('estudiantes').doc(id).delete(); }
+    catch(e) { console.error(e); alert("Error al eliminar"); }
+  }
+
+  async function eliminarEstudianteActual() {
+    if (currentEditId) await borrarEstudiante(currentEditId);
+    cerrarModal();
+  }
+
+  // ════════════════════════════════════════
+  //  ASISTENCIA
+  // ════════════════════════════════════════
+  async function loadAttendanceForDate() {
+    const date = document.getElementById('fechaAsistencia').value;
+    checkboxState = {};
+    attendanceForDate = [];
+    if (!date) { renderAsistenciaTable(); return; }
+    attendanceForDate = estudiantesCache.filter(e => e.asistencias && e.asistencias[date]).map(e => e.id);
+    estudiantesCache.forEach(e => {
+      checkboxState[e.id] = !!(e.asistencias && e.asistencias[date]);
+    });
+    renderAsistenciaTable();
+  }
+
+  function renderAsistenciaTable() {
+    saveCheckboxState();
+    const q = (document.getElementById('buscarAsistencia')?.value || '').toLowerCase();
+    const tbody = document.getElementById('tablaAsistencia');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const date = document.getElementById('fechaAsistencia').value;
+    const filtered = estudiantesCache
+      .filter(e =>
+        !q || (e.nombres||'').toLowerCase().includes(q) || (e.apellidos||'').toLowerCase().includes(q)
+      )
+      .sort((a, b) => (a.apellidos || '').localeCompare(b.apellidos || '', 'es', {sensitivity: 'base'}));
+    if (!filtered.length) {
+      tbody.innerHTML = `<tr><td colspan="4"><div class="empty"><span>👤</span><p>Sin resultados</p></div></td></tr>`;
+      return;
+    }
+    filtered.forEach(e => {
+      const isChecked = e.id in checkboxState
+        ? checkboxState[e.id]
+        : !!(date && e.asistencias && e.asistencias[date]);
+
+      // Calcular edad en tiempo real
+      let edadMostrada = e.edad;
+      if (e.fechaNacimiento) {
+        const edadCalculada = calcularEdadDesdeFecha(e.fechaNacimiento);
+        if (edadCalculada !== null) edadMostrada = edadCalculada;
+      }
+
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td><strong>${escapeHtml(e.apellidos)}</strong></td>
+          <td>${escapeHtml(e.nombres)}</td>
+          <td class="hide-sm">${edadMostrada||'—'}</td>
+          <td style="text-align:center">
+            <input type="checkbox" id="asis-${e.id}" ${isChecked?'checked':''}
+              onchange="checkboxState['${e.id}'] = this.checked" />
+          </td>
+        </tr>`);
+    });
+  }
+
+  async function guardarAsistencia() {
+    const date = document.getElementById('fechaAsistencia').value;
+    if (!date) { alert("⚠️ Selecciona una fecha antes de guardar"); return; }
+    saveCheckboxState();
+    if (!estudiantesCache.length) { alert("No hay estudiantes para guardar"); return; }
+    try {
+      const batch = db.batch();
+      estudiantesCache.forEach(e => {
+        const val = checkboxState.hasOwnProperty(e.id)
+          ? checkboxState[e.id]
+          : !!(e.asistencias && e.asistencias[date]);
+        batch.update(db.collection('estudiantes').doc(e.id), { [`asistencias.${date}`]: val });
+      });
+      await batch.commit();
+      estudiantesCache.forEach(e => {
+        if (!e.asistencias) e.asistencias = {};
+        if (checkboxState.hasOwnProperty(e.id)) e.asistencias[date] = checkboxState[e.id];
+      });
+      alert("✅ Asistencia guardada correctamente");
+      renderResumen();
+    } catch(err) { console.error(err); alert("Error guardando asistencia."); }
+  }
+
+  function clearAttendanceDate() {
+    document.getElementById('fechaAsistencia').value = '';
+    checkboxState = {};
+    attendanceForDate = [];
+    renderAsistenciaTable();
+  }
+
+  // ════════════════════════════════════════
+  //  RESUMEN
+  // ════════════════════════════════════════
+  function renderResumen() {
+    const q = (document.getElementById('buscarResumen')?.value || '').toLowerCase();
+    const tbody = document.getElementById('tablaResumen');
+    if (!tbody) return;
+    tbody.innerHTML = '';
+    const dateSet = new Set();
+    estudiantesCache.forEach(e => { if (e.asistencias) Object.keys(e.asistencias).forEach(d => dateSet.add(d)); });
+    const totalDays = dateSet.size;
+    const lista = estudiantesCache
+      .map(e => ({ ...e, cnt: Object.values(e.asistencias||{}).filter(Boolean).length }))
+      .filter(e => !q || (e.nombres||'').toLowerCase().includes(q) || (e.apellidos||'').toLowerCase().includes(q))
+      .sort((a, b) => (a.apellidos || '').localeCompare(b.apellidos || '', 'es', {sensitivity: 'base'}));
+
+    document.getElementById('resumenInfo').innerHTML =
+      `📅 <span>${totalDays} día${totalDays!==1?'s':''} registrado${totalDays!==1?'s':''}</span>`;
+
+    if (!lista.length) {
+      tbody.innerHTML = `<tr><td colspan="5"><div class="empty"><span>📊</span><p>Sin datos</p></div></td></tr>`;
+      return;
+    }
+    lista.forEach(e => {
+      const pct = totalDays ? Math.round((e.cnt/totalDays)*100) : 0;
+      let badge;
+      if (pct < 25)      badge = `<span class="badge badge-red">🔴 Crítico ${pct}%</span>`;
+      else if (pct < 60) badge = `<span class="badge badge-amber">🟡 Regular ${pct}%</span>`;
+      else               badge = `<span class="badge badge-green">🟢 Bueno ${pct}%</span>`;
+
+      // Calcular edad en tiempo real
+      let edadMostrada = e.edad;
+      if (e.fechaNacimiento) {
+        const edadCalculada = calcularEdadDesdeFecha(e.fechaNacimiento);
+        if (edadCalculada !== null) edadMostrada = edadCalculada;
+      }
+
+      tbody.insertAdjacentHTML('beforeend', `
+        <tr>
+          <td><strong>${escapeHtml(e.apellidos||'')}</strong></td>
+          <td>${escapeHtml(e.nombres||'')}</td>
+          <td class="hide-sm">${edadMostrada||'—'}</td>
+          <td><strong>${e.cnt}</strong></td>
+          <td>${badge}</td>
+        </tr>`);
+    });
+  }
+
+  // ════════════════════════════════════════
+  //  HELPERS
+  // ════════════════════════════════════════
+  function calcularTiempo(fecha) {
+    let i = new Date(fecha), h = new Date();
+    let a = h.getFullYear()-i.getFullYear(), m = h.getMonth()-i.getMonth(), d = h.getDate()-i.getDate();
+    if (d < 0) { m--; d += new Date(h.getFullYear(), h.getMonth(), 0).getDate(); }
+    if (m < 0) { a--; m += 12; }
+    let p = [];
+    if (a>0) p.push(`${a} año${a>1?'s':''}`);
+    if (m>0) p.push(`${m} mes${m>1?'es':''}`);
+    if (d>0) p.push(`${d} día${d>1?'s':''}`);
+    return p.length ? p.join(', ') : 'Hoy';
+  }
+</script>
+</body>
+</html>
